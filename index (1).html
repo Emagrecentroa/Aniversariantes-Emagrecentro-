@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0F6E56">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Aniversários">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Aniversários — Emagrecentro</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --verde:#0F6E56;--verde-dark:#085041;--verde-light:#E1F5EE;--verde-mid:#1D9E75;
+  --gold:#854F0B;--gold-light:#FAEEDA;--gold-mid:#EF9F27;
+  --bg:#F7F8F6;--white:#fff;--text:#1a1a1a;--muted:#6b7280;--border:#e5e7eb;
+  --radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,.08);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+
+/* Header */
+.header{background:var(--verde);color:#fff;padding:16px 16px 20px;position:sticky;top:0;z-index:100}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.header h1{font-size:18px;font-weight:600;letter-spacing:-.3px}
+.header .subtitle{font-size:12px;opacity:.75}
+.header-actions{display:flex;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--muted);font-weight:500;transition:.15s}
+.nav-btn.active{color:var(--verde)}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.8}
+
+/* Sections */
+.section{display:none;padding:16px}
+.section.active{display:block}
+
+/* Cards */
+.card{background:var(--white);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-title{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text)}
+
+/* Alert banners */
+.bday-card{border-radius:var(--radius);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.bday-card.hoje{background:linear-gradient(135deg,#0F6E56,#1D9E75);color:#fff}
+.bday-card.antes{background:var(--gold-light);border:1px solid #EF9F27}
+.bday-card.semana{background:#EAF3DE;border:1px solid #97C459}
+.bday-card .name{font-size:16px;font-weight:700;margin-bottom:2px}
+.bday-card .meta{font-size:12px;opacity:.8;margin-bottom:12px}
+.bday-card.hoje .meta{color:rgba(255,255,255,.85)}
+.bday-card.antes .meta{color:var(--gold);opacity:1}
+.bday-card .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;margin-bottom:8px}
+.bday-card.hoje .badge{background:rgba(255,255,255,.2);color:#fff}
+.bday-card.antes .badge{background:var(--gold-mid);color:#fff}
+.bday-card.semana .badge{background:#639922;color:#fff}
+
+/* Message preview */
+.msg-preview{background:rgba(0,0,0,.06);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;white-space:pre-wrap;margin:10px 0;max-height:120px;overflow:hidden;position:relative}
+.bday-card.hoje .msg-preview{background:rgba(255,255,255,.15);color:#fff}
+.bday-card.antes .msg-preview{background:rgba(133,79,11,.08);color:#4a2c0a}
+.bday-card.semana .msg-preview{background:rgba(63,109,17,.1);color:#27500A}
+.msg-preview.expanded{max-height:none}
+.msg-preview-fade{position:absolute;bottom:0;left:0;right:0;height:30px;pointer-events:none}
+.bday-card.hoje .msg-preview-fade{background:linear-gradient(transparent,rgba(15,110,86,.8))}
+.bday-card.antes .msg-preview-fade{background:linear-gradient(transparent,#FAEEDA)}
+.bday-card.semana .msg-preview-fade{background:linear-gradient(transparent,#EAF3DE)}
+
+/* Message label */
+.msg-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;opacity:.7}
+
+/* Buttons */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;text-decoration:none}
+.btn:active{opacity:.85;transform:scale(.97)}
+.btn-wpp{background:#25D366;color:#fff}
+.btn-wpp2{background:#128C7E;color:#fff}
+.btn-copy{background:rgba(0,0,0,.12);color:inherit}
+.bday-card.hoje .btn-copy{background:rgba(255,255,255,.2);color:#fff}
+.btn-expand{background:transparent;border:none;font-size:11px;color:inherit;opacity:.7;cursor:pointer;padding:4px 0;text-decoration:underline}
+
+/* Empty */
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty .icon{font-size:40px;margin-bottom:12px}
+.empty p{font-size:14px;line-height:1.5}
+
+/* Form */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;background:var(--white);color:var(--text);outline:none;transition:.15s;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--verde)}
+.field textarea{resize:vertical;line-height:1.6}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-primary{width:100%;padding:14px;background:var(--verde);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-primary:active{background:var(--verde-dark)}
+
+/* Patient list */
+.patient-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.patient-item:last-child{border-bottom:none}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--verde-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--verde);flex-shrink:0}
+.patient-info{flex:1;min-width:0}
+.patient-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.patient-meta{font-size:12px;color:var(--muted);margin-top:1px}
+.del-btn{width:32px;height:32px;border-radius:50%;border:none;background:#FEE2E2;color:#DC2626;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* Search */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{padding-left:36px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--muted);stroke-width:2;fill:none}
+
+/* Config */
+.config-section{margin-bottom:20px}
+.config-section h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.var-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.var-chip{font-size:11px;background:#F3F4F6;border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:#374151;font-family:monospace}
+
+/* Counters */
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.counter{background:var(--white);border-radius:var(--radius-sm);padding:12px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border)}
+.counter .num{font-size:26px;font-weight:800;line-height:1}
+.counter .lbl{font-size:10px;color:var(--muted);margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.counter.c-gold .num{color:var(--gold)}
+.counter.c-verde .num{color:var(--verde)}
+.counter.c-blue .num{color:#185FA5}
+
+/* Toast */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* Install banner */
+.install-banner{background:var(--verde);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px}
+.install-banner .install-btn{margin-left:auto;background:#fff;color:var(--verde);border:none;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.section-header h2{font-size:16px;font-weight:700}
+.count-badge{background:var(--verde);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+
+/* Notification dot */
+.nav-dot{width:7px;height:7px;background:#EF9F27;border-radius:50%;position:absolute;top:8px;right:calc(50% - 14px)}
+</style>
+</head>
+<body>
+
+<div id="install-banner" style="display:none" class="install-banner">
+  <span>📲 Instale o app no seu celular!</span>
+  <button class="install-btn" id="install-btn">Instalar</button>
+  <button onclick="document.getElementById('install-banner').style.display='none'" style="background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;padding:0 4px">×</button>
+</div>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>🎂 Aniversários</h1>
+      <div class="subtitle">Emagrecentro Araruama</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="refreshAll()" title="Atualizar">↻</button>
+    </div>
+  </div>
+</div>
+
+<div id="sec-home" class="section active">
+  <div class="counters" id="counters"></div>
+  <div class="section-header">
+    <h2>Alertas para enviar</h2>
+    <span class="count-badge" id="alert-count">0</span>
+  </div>
+  <div id="bday-list"></div>
+</div>
+
+<div id="sec-patients" class="section">
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Buscar paciente..." oninput="filterPatients(this.value)">
+  </div>
+  <div class="card" style="padding:8px 16px">
+    <div id="patient-list"></div>
+  </div>
+</div>
+
+<div id="sec-add" class="section">
+  <div class="card">
+    <div class="card-title">Cadastrar paciente</div>
+    <div class="field">
+      <label>Nome completo</label>
+      <input id="f-nome" type="text" placeholder="Ex: Maria Oliveira">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Nascimento</label>
+        <input id="f-nasc" type="date">
+      </div>
+      <div class="field">
+        <label>WhatsApp</label>
+        <input id="f-wpp" type="tel" placeholder="(22) 99999-9999">
+      </div>
+    </div>
+    <div class="field">
+      <label>Protocolo / Serviço</label>
+      <select id="f-prot">
+        <option value="">Selecionar...</option>
+        <option>Protocolo Speed</option>
+        <option>Método 4 Fases</option>
+        <option>Lipo sem corte</option>
+        <option>Criolipólise</option>
+        <option>Carboxiterapia</option>
+        <option>Radiofrequência</option>
+        <option>Manutenção</option>
+        <option>Consulta avaliação</option>
+      </select>
+    </div>
+    <div id="form-msg" style="font-size:13px;color:var(--verde);margin-bottom:10px;display:none"></div>
+    <button class="btn-primary" onclick="addPatient()">💾 Salvar paciente</button>
+  </div>
+</div>
+
+<div id="sec-config" class="section">
+  <div class="card">
+    <div class="config-section">
+      <h3>Configurações da oferta</h3>
+      <div class="field-row">
+        <div class="field">
+          <label>Desconto (%)</label>
+          <input id="cfg-desc" type="number" value="15" min="1" max="99">
+        </div>
+        <div class="field">
+          <label>Aviso antecipado (dias)</label>
+          <input id="cfg-dias" type="number" value="4" min="1" max="10">
+        </div>
+      </div>
+    </div>
+    <div class="config-section">
+      <h3>📅 Mensagem de antecipação</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Enviada X dias antes do aniversário</p>
+      <div class="var-chips">
+        <span class="var-chip">{nome}</span><span class="var-chip">{diasRestantes}</span><span class="var-chip">{data}</span><span class="var-chip">{desconto}</span><span class="var-chip">{protocolo}</span><span class="var-chip">{validade}</span>
+      </div>
+      <div class="field">
+        <textarea id="cfg-msg-antes" rows="8"></textarea>
+      </div>
+    </div>
+    <div class="config-section">
+      <h3>🎂 Mensagem do dia do aniversário</h3>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Enviada no próprio dia</p>
+      <div class="var-chips">
+        <span class="var-chip">{nome}</span><span class="var-chip">{desconto}</span><span class="var-chip">{protocolo}</span><span class="var-chip">{validade}</span>
+      </div>
+      <div class="field">
+        <textarea id="cfg-msg-hoje" rows="8"></textarea>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveConfig()">💾 Salvar configurações</button>
+    <div id="cfg-ok" style="text-align:center;font-size:13px;color:var(--verde);margin-top:10px;display:none">✅ Salvo!</div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('home',this)" id="nav-home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Alertas
+    <span class="nav-dot" id="notif-dot" style="display:none"></span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('patients',this)" id="nav-patients">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Pacientes
+  </button>
+  <button class="nav-btn" onclick="switchTab('add',this)" id="nav-add">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Cadastrar
+  </button>
+  <button class="nav-btn" onclick="switchTab('config',this)" id="nav-config">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Config
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFAULT_MSG_ANTES = `Oi, {nome}! 🌸
+
+Aqui é a equipe do Emagrecentro Araruama. Passamos para avisar que o seu aniversário está chegando — falta só {diasRestantes} dia(s)! 🎉
+
+Preparamos uma oferta bem especial pra você:
+
+🎁 *{desconto}% de desconto* em qualquer procedimento, inclusive {protocolo}!
+
+A oferta vale a partir do seu aniversário, dia *{data}*, e vai até {validade}.
+
+Aproveite esse presente! Para agendar é só responder aqui.
+
+Com carinho,
+*Equipe Emagrecentro Araruama* 💚`;
+
+const DEFAULT_MSG_HOJE = `🎂 *Feliz Aniversário, {nome}!* 🎉
+
+Toda a equipe do Emagrecentro Araruama te deseja um dia incrível, repleto de saúde, leveza e conquistas!
+
+E para tornar esse dia ainda mais especial, o seu presente chegou:
+
+✨ *{desconto}% de desconto* em qualquer procedimento — inclusive {protocolo}!
+
+Válido até *{validade}*. Não deixe passar! 💪
+
+Para agendar, é só responder essa mensagem.
+
+Com muito carinho,
+*Equipe Emagrecentro Araruama* 💚🎁`;
+
+function loadData(){
+  try{
+    const p = JSON.parse(localStorage.getItem('ec_patients')||'[]');
+    const c = JSON.parse(localStorage.getItem('ec_config')||'null') || {
+      desconto:15, dias:4,
+      msgAntes: DEFAULT_MSG_ANTES,
+      msgHoje: DEFAULT_MSG_HOJE
+    };
+    return {patients:p, config:c};
+  }catch{return{patients:[],config:{desconto:15,dias:4,msgAntes:DEFAULT_MSG_ANTES,msgHoje:DEFAULT_MSG_HOJE}};}
+}
+function saveData(){localStorage.setItem('ec_patients',JSON.stringify(data.patients));localStorage.setItem('ec_config',JSON.stringify(data.config));}
+
+let data = loadData();
+
+function initials(n){return n.trim().split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();}
+
+function formatDate(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}`;
+}
+function formatDateFull(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function bdayInfo(nasc){
+  if(!nasc) return null;
+  const now = new Date(); now.setHours(0,0,0,0);
+  const [y,m,d] = nasc.split('-').map(Number);
+  let bday = new Date(now.getFullYear(), m-1, d); bday.setHours(0,0,0,0);
+  if(bday < now) bday.setFullYear(now.getFullYear()+1);
+  const diff = Math.round((bday-now)/(86400000));
+  return {diff, dateStr:`${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}`, year:bday.getFullYear()};
+}
+
+function validadeStr(days){
+  const d = new Date(); d.setDate(d.getDate()+days);
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+function buildMsg(template, p, diff){
+  const bi = bdayInfo(p.nasc);
+  const valDays = diff===0 ? 7 : (bi ? bi.diff+7 : 7);
+  return template
+    .replace(/{nome}/g, p.nome)
+    .replace(/{desconto}/g, data.config.desconto)
+    .replace(/{protocolo}/g, p.protocolo||'nossos procedimentos')
+    .replace(/{diasRestantes}/g, diff)
+    .replace(/{data}/g, bi ? bi.dateStr : '')
+    .replace(/{validade}/g, validadeStr(valDays));
+}
+
+function wppLink(p, msg){
+  const num = (p.wpp||'').replace(/\D/g,'');
+  if(!num) return null;
+  return `https://wa.me/55${num}?text=${encodeURIComponent(msg)}`;
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function copyText(txt){
+  navigator.clipboard.writeText(txt).then(()=>toast('✅ Mensagem copiada!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('✅ Copiada!');
+  });
+}
+
+function renderHome(){
+  const dias = data.config.dias||4;
+  const alerts = data.patients
+    .map(p=>({p, bi:bdayInfo(p.nasc)}))
+    .filter(x=>x.bi && x.bi.diff <= dias)
+    .sort((a,b)=>a.bi.diff-b.bi.diff);
+
+  const hoje = alerts.filter(x=>x.bi.diff===0).length;
+  const antes = alerts.filter(x=>x.bi.diff>0).length;
+  const mes = data.patients.filter(p=>{const b=bdayInfo(p.nasc);return b&&b.diff>dias&&b.diff<=30}).length;
+
+  document.getElementById('counters').innerHTML=`
+    <div class="counter c-gold"><div class="num">${hoje}</div><div class="lbl">Hoje 🎂</div></div>
+    <div class="counter c-verde"><div class="num">${antes}</div><div class="lbl">Em breve 📅</div></div>
+    <div class="counter c-blue"><div class="num">${mes}</div><div class="lbl">No mês</div></div>
+  `;
+  document.getElementById('alert-count').textContent = alerts.length;
+  document.getElementById('notif-dot').style.display = alerts.length ? '' : 'none';
+
+  if(!alerts.length){
+    document.getElementById('bday-list').innerHTML=`<div class="empty"><div class="icon">🎉</div><p>Nenhum aniversário nos próximos ${dias} dias</p></div>`;
+    return;
+  }
+
+  document.getElementById('bday-list').innerHTML = alerts.map(({p,bi})=>{
+    const isHoje = bi.diff===0;
+    const cls = isHoje ? 'hoje' : (bi.diff<=data.config.dias ? 'antes' : 'semana');
+    const badgeTxt = isHoje ? '🎂 Aniversário hoje!' : `📅 Faltam ${bi.diff} dia${bi.diff>1?'s':''}`;
+    const msg = buildMsg(isHoje ? data.config.msgHoje : data.config.msgAntes, p, bi.diff);
+    const link = wppLink(p, msg);
+    const msgLabel = isHoje ? 'Mensagem do dia' : `Mensagem de antecipação (${bi.diff} dias antes)`;
+    const id = 'msg_'+p.nome.replace(/\s/g,'_')+bi.diff;
+    return `
+      <div class="bday-card ${cls}">
+        <div class="badge">${badgeTxt}</div>
+        <div class="name">${p.nome}</div>
+        <div class="meta">📆 ${formatDateFull(p.nasc)} · ${p.protocolo||'Sem protocolo'} · ${p.wpp||'Sem WhatsApp'}</div>
+        <div class="msg-label">${msgLabel}</div>
+        <div class="msg-preview" id="${id}">${msg}<div class="msg-preview-fade"></div></div>
+        <button class="btn-expand" onclick="expandMsg('${id}',this)">ver tudo</button>
+        <div class="btn-row">
+          ${link ? `<a href="${link}" target="_blank" rel="noopener"><button class="btn ${isHoje?'btn-wpp':'btn-wpp2'}">📲 Enviar WhatsApp</button></a>` : '<span style="font-size:12px;opacity:.7">Sem WhatsApp cadastrado</span>'}
+          <button class="btn btn-copy" onclick="copyText(${JSON.stringify(msg).replace(/"/g,'&quot;')})">📋 Copiar</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function expandMsg(id, btn){
+  const el = document.getElementById(id);
+  el.classList.toggle('expanded');
+  const fade = el.querySelector('.msg-preview-fade');
+  if(fade) fade.style.display = el.classList.contains('expanded') ? 'none' : '';
+  btn.textContent = el.classList.contains('expanded') ? 'ver menos' : 'ver tudo';
+}
+
+function renderPatients(filter=''){
+  const list = data.patients.filter(p=>p.nome.toLowerCase().includes(filter.toLowerCase()));
+  if(!list.length){
+    document.getElementById('patient-list').innerHTML='<div class="empty" style="padding:20px"><p>Nenhum paciente encontrado</p></div>';
+    return;
+  }
+  document.getElementById('patient-list').innerHTML = list.map((p,i)=>`
+    <div class="patient-item">
+      <div class="avatar">${initials(p.nome)}</div>
+      <div class="patient-info">
+        <div class="patient-name">${p.nome}</div>
+        <div class="patient-meta">🎂 ${formatDateFull(p.nasc)} · ${p.protocolo||'—'}</div>
+      </div>
+      <button class="del-btn" onclick="delPatient(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function filterPatients(v){renderPatients(v);}
+
+function delPatient(i){
+  if(!confirm(`Remover "${data.patients[i].nome}"?`)) return;
+  data.patients.splice(i,1); saveData(); renderAll();
+}
+
+function addPatient(){
+  const nome = document.getElementById('f-nome').value.trim();
+  const nasc = document.getElementById('f-nasc').value;
+  const wpp  = document.getElementById('f-wpp').value.trim();
+  const prot = document.getElementById('f-prot').value;
+  const msg  = document.getElementById('form-msg');
+  if(!nome||!nasc){msg.style.display='block';msg.style.color='#DC2626';msg.textContent='Preencha nome e data de nascimento.';return;}
+  data.patients.push({nome,nasc,wpp,protocolo:prot});
+  saveData();
+  document.getElementById('f-nome').value='';
+  document.getElementById('f-nasc').value='';
+  document.getElementById('f-wpp').value='';
+  document.getElementById('f-prot').value='';
+  msg.style.display='block';msg.style.color='var(--verde)';msg.textContent='✅ Paciente salvo com sucesso!';
+  setTimeout(()=>msg.style.display='none',2500);
+  renderAll();
+}
+
+function saveConfig(){
+  data.config.desconto = parseInt(document.getElementById('cfg-desc').value)||15;
+  data.config.dias     = parseInt(document.getElementById('cfg-dias').value)||4;
+  data.config.msgAntes = document.getElementById('cfg-msg-antes').value;
+  data.config.msgHoje  = document.getElementById('cfg-msg-hoje').value;
+  saveData();
+  const ok = document.getElementById('cfg-ok');
+  ok.style.display='block'; setTimeout(()=>ok.style.display='none',2000);
+  renderHome();
+}
+
+function switchTab(name, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='patients') renderPatients();
+}
+
+function refreshAll(){renderAll();toast('Atualizado!');}
+
+function renderAll(){
+  renderHome();
+  renderPatients();
+}
+
+// Init config fields
+document.getElementById('cfg-desc').value = data.config.desconto;
+document.getElementById('cfg-dias').value = data.config.dias;
+document.getElementById('cfg-msg-antes').value = data.config.msgAntes;
+document.getElementById('cfg-msg-hoje').value  = data.config.msgHoje;
+
+// Sample data if empty
+if(!data.patients.length){
+  const today = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const iso = (d,m,y)=>`${y}-${pad(m)}-${pad(d)}`;
+  data.patients = [
+    {nome:'Ana Paula Ferreira', nasc:iso(today.getDate(), today.getMonth()+1, today.getFullYear()), wpp:'22988887777', protocolo:'Protocolo Speed'},
+    {nome:'Carla Mendes',       nasc:iso(today.getDate()+3<=31?today.getDate()+3:3, today.getMonth()+1, today.getFullYear()), wpp:'22977776666', protocolo:'Método 4 Fases'},
+  ];
+}
+
+renderAll();
+
+// PWA install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('install-banner').style.display='flex';
+});
+document.getElementById('install-btn').addEventListener('click', ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{deferredPrompt=null;document.getElementById('install-banner').style.display='none';});
+});
+
+// Notifications
+if('Notification' in window && Notification.permission==='default'){
+  setTimeout(()=>Notification.requestPermission(), 3000);
+}
+
+// Register SW
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
